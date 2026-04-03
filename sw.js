@@ -1,7 +1,6 @@
 const CACHE_NAME = 'finance-app-v1';
 const ASSETS = [
-  '/index.html',
-  '/manifest.json'
+  '/財務規劃app/money/index.html', '/財務規劃app/manifest.json'
 ];
 
 self.addEventListener('install', event => {
