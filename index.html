@@ -440,7 +440,7 @@
 <div class="modal-overlay" id="modal-ledger">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">新增月份記錄</div>
+    <div class="modal-title" id="ledger-modal-title">新增月份記錄</div>
     <div class="field-row">
       <div class="field">
         <label>年份</label>
@@ -465,6 +465,7 @@
       <textarea id="ledger-note" placeholder="例如：出國玩、紅包、健檢…"></textarea>
     </div>
     <button class="submit-btn" onclick="saveLedger()">儲存</button>
+    <button class="cancel-btn delete-btn" id="ledger-delete-btn" onclick="deleteLedger()">刪除此筆記錄</button>
     <button class="cancel-btn" onclick="closeModal('modal-ledger')">取消</button>
   </div>
 </div>
@@ -573,6 +574,19 @@ const defaultAssets = {
 };
 
 const defaultLedger = [
+  // 2024
+  { year: 2024, month: 1,  income: 43884, expense: 34117, note: '' },
+  { year: 2024, month: 2,  income: 74684, expense: 60833, note: '紅包16000，香港12000' },
+  { year: 2024, month: 3,  income: 37065, expense: 66378, note: '維持器＋電動牙刷11500；港澳11160；沖繩10656' },
+  { year: 2024, month: 4,  income: 92765, expense: 40073, note: '' },
+  { year: 2024, month: 5,  income: 37265, expense: 36900, note: '' },
+  { year: 2024, month: 6,  income: 38065, expense: 52774, note: '綠島6283；HPV15000' },
+  { year: 2024, month: 7,  income: 40065, expense: 38092, note: '花蓮4600；牙套最後一期' },
+  { year: 2024, month: 8,  income: 41765, expense: 31576, note: '眼鏡6280' },
+  { year: 2024, month: 9,  income: 78065, expense: 27123, note: '藝聲家40000' },
+  { year: 2024, month: 10, income: 58265, expense: 33203, note: '' },
+  { year: 2024, month: 11, income: 39565, expense: 43004, note: '環島18000' },
+  { year: 2024, month: 12, income: 35365, expense: 34589, note: '' },
   // 2025
   { year: 2025, month: 1,  income: 72565, expense: 47005, note: '紅包 + 孝親費' },
   { year: 2025, month: 2,  income: 39800, expense: 29043, note: '' },
@@ -665,6 +679,13 @@ let assets  = load(KEYS.assets, defaultAssets);
 let ledger  = load(KEYS.ledger, defaultLedger);
 let etfLog  = load(KEYS.etf,    defaultEtf);
 let goals   = load(KEYS.goals,  defaultGoals);
+
+// 補入 2024 資料（已有 localStorage 的使用者）
+const has2024 = ledger.some(r => r.year === 2024);
+if (!has2024) {
+  ledger = [...defaultLedger.filter(r => r.year === 2024), ...ledger];
+  save(KEYS.ledger, ledger);
+}
 
 // ═══════════════════════════════════════
 //  HELPERS
@@ -883,24 +904,18 @@ function renderPage1() {
 
 // ── Page 2: 記帳 ──
 function renderPage2() {
-  const recent = recentSixMonths();
-  const maxSavings = Math.max(...recent.map(r => Math.abs(r.income - r.expense)), 1);
-  const bars = recent.map(r => {
-    const s = r.income - r.expense;
-    const h = Math.max(Math.round((Math.abs(s) / maxSavings) * 100), 4);
-    const color = s >= 0 ? (h > 70 ? '#c4614a' : '#FFBCA6') : '#f5a898';
-    return `<div class="mini-bar-col">
-      <div class="mini-bar" style="height:${h}%;background:${color};"></div>
-      <div class="mini-bar-lbl">${r.month}月</div>
-    </div>`;
-  }).join('');
+  const yearData = ledgerByYear(currentLedgerYear);
+  const yearSavings = yearData.reduce((s, r) => s + (r.income - r.expense), 0);
+  const yearIncome  = yearData.reduce((s, r) => s + r.income,  0);
+  const yearExpense = yearData.reduce((s, r) => s + r.expense, 0);
+  const savingsColor = yearSavings >= 0 ? '#4a9e72' : '#d05a3a';
 
-  const rows = ledgerByYear(currentLedgerYear).map(r => {
+  const rows = yearData.map(r => {
     const s = r.income - r.expense;
     const cls = s >= 0 ? 'pos' : 'neg';
     const dot = s >= 0 ? (r.note ? '#c48a3a' : '#4a9e72') : '#d05a3a';
     const noteHtml = r.note ? `<div class="entry-note"><div class="entry-note-dot"></div>${r.note}</div>` : '';
-    return `<div class="entry-row">
+    return `<div class="entry-row" style="cursor:pointer" onclick="openEditLedger(${r.year},${r.month})">
       <div class="entry-left">
         <div class="entry-dot" style="background:${dot};"></div>
         <div>
@@ -929,12 +944,16 @@ function renderPage2() {
 
     <div class="tab-row">${yearBtns}</div>
 
-    <div class="sec-label">近 6 個月存款趨勢</div>
-    <div class="card">
-      <div class="mini-bars">${bars}</div>
+    <div class="sec-label">${currentLedgerYear} 年存款總額</div>
+    <div class="card" style="padding:16px 18px;">
+      <div style="font-size:28px;font-weight:700;color:${savingsColor};">${fmtSigned(yearSavings)}</div>
+      <div style="font-size:11px;color:#c4a89a;margin-top:6px;">
+        收入 $${fmt(yearIncome)} &nbsp;·&nbsp; 支出 $${fmt(yearExpense)}
+        &nbsp;·&nbsp; 共 ${yearData.length} 個月
+      </div>
     </div>
 
-    <button class="add-btn" onclick="openModal('modal-ledger')">
+    <button class="add-btn" onclick="openNewLedger()">
       <div class="add-circle">+</div>
       <span>新增本月紀錄</span>
     </button>
@@ -1184,6 +1203,42 @@ function initLedgerModal() {
     o.value = y; o.textContent = y + '年';
     sel.appendChild(o);
   });
+}
+
+function openNewLedger() {
+  initLedgerModal();
+  $('ledger-modal-title').textContent = '新增月份記錄';
+  $('ledger-year').value = currentLedgerYear;
+  $('ledger-month').selectedIndex = new Date().getMonth();
+  $('ledger-income').value = '';
+  $('ledger-expense').value = '';
+  $('ledger-note').value = '';
+  $('ledger-delete-btn').style.display = 'none';
+  openModal('modal-ledger');
+}
+
+function openEditLedger(year, month) {
+  initLedgerModal();
+  const r = ledger.find(x => x.year === year && x.month === month);
+  $('ledger-modal-title').textContent = `編輯 ${year} 年 ${month} 月`;
+  $('ledger-year').value = year;
+  $('ledger-month').selectedIndex = month - 1;
+  $('ledger-income').value  = r ? r.income  : '';
+  $('ledger-expense').value = r ? r.expense : '';
+  $('ledger-note').value    = r ? r.note    : '';
+  $('ledger-delete-btn').style.display = '';
+  openModal('modal-ledger');
+  setTimeout(() => $('ledger-income').focus(), 50);
+}
+
+function deleteLedger() {
+  const year  = parseInt($('ledger-year').value);
+  const month = parseInt($('ledger-month').selectedIndex) + 1;
+  if (!confirm(`確定刪除 ${year} 年 ${month} 月的記錄？`)) return;
+  ledger = ledger.filter(r => !(r.year === year && r.month === month));
+  save(KEYS.ledger, ledger);
+  closeModal('modal-ledger');
+  renderPage2();
 }
 
 function saveLedger() {
