@@ -1,6 +1,7 @@
 const CACHE_NAME = 'finance-app-v1';
 const ASSETS = [
-  '/財務規劃app/money/index.html', '/財務規劃app/manifest.json'
+  '/money/index.html',
+  '/money/manifest.json'
 ];
 
 self.addEventListener('install', event => {
@@ -38,7 +39,7 @@ self.addEventListener('fetch', event => {
       }).catch(() => {
         // 離線時若找不到快取，返回主頁
         if (event.request.destination === 'document') {
-          return caches.match('/index.html');
+          return caches.match('/money/index.html');
         }
       });
     })

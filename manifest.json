@@ -2,7 +2,7 @@
   "name": "財務規劃",
   "short_name": "財務規劃",
   "description": "個人財務規劃與記帳工具",
-  "start_url": "/財務規劃app/money/index.html",
+  "start_url": "/money/index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#fff8f5",
