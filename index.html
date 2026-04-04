@@ -955,19 +955,20 @@ function showPage(idx) {
 
 // ── Page 1: 總覽 ──
 function renderPage1() {
+  const { returnPct: etfReturnPct } = calcEtfStats();
   const nw = netWorth();
   const houseGoal = goals.house;
   const pct = Math.min((nw / houseGoal) * 100, 100).toFixed(1);
   const yearEst = 2031;
 
-  const assetAccounts = accounts.filter(a => a.value >= 0);
+  const assetAccounts = accounts.filter(a => a.value >= 0 && a.name !== 'ETF 市值');
   const debtAccounts  = accounts.filter(a => a.value < 0);
 
   const etfItem = `
     <div class="asset-item" data-id="__etf__" onclick="openEtfSnapshotModal()">
       <div class="asset-name">ETF 市值</div>
       <div class="asset-val accent">$${fmt(assets.etfValue)}</div>
-      <div class="asset-sub">+${assets.etfReturn}%</div>
+      <div class="asset-sub">+${etfReturnPct}%</div>
     </div>`;
 
   // 依儲存的順序排列資產格子（含 ETF）
