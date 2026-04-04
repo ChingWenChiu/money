@@ -144,6 +144,33 @@
     .asset-val.neg { color: #d05a3a; }
     .asset-sub { font-size: 10px; color: #d4b8ae; margin-top: 2px; }
 
+    /* ── Add Item Button ── */
+    .add-item-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1.5px dashed #e8c8be !important;
+      background: transparent !important;
+      gap: 2px;
+    }
+    .add-item-btn .add-icon { font-size: 20px; color: #d4b0a4; line-height: 1; }
+    .add-item-btn .asset-name { margin: 0; }
+
+    /* ── Type Toggle ── */
+    .type-toggle { display: flex; gap: 8px; }
+    .type-toggle button {
+      flex: 1; padding: 8px 0; border-radius: 10px;
+      border: 1.5px solid #e8c8be; background: #fff;
+      font-size: 14px; color: #c4a89a; cursor: pointer;
+    }
+    .type-toggle button.active {
+      background: #FFBCA6; border-color: #FFBCA6; color: #2a1a14; font-weight: 600;
+    }
+
+    /* ── Delete Button ── */
+    .delete-btn { color: #d05a3a !important; }
+
     /* ── Card ── */
     .card {
       background: #fff;
@@ -454,18 +481,43 @@
   </div>
 </div>
 
-<!-- ── Modal: 編輯資產快照 ── -->
-<div class="modal-overlay" id="modal-assets">
+<!-- ── Modal: 編輯／新增帳戶 ── -->
+<div class="modal-overlay" id="modal-account">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">更新資產快照</div>
-    <div class="field"><label>台新銀行</label><input type="number" id="a-taishin" /></div>
-    <div class="field"><label>國泰銀行</label><input type="number" id="a-cathay" /></div>
-    <div class="field"><label>ETF 庫存總現值</label><input type="number" id="a-etf" /></div>
-    <div class="field"><label>媽媽借款</label><input type="number" id="a-mom" /></div>
-    <div class="field"><label>信用卡帳單（負數）</label><input type="number" id="a-cc" /></div>
-    <button class="submit-btn" onclick="saveAssets()">儲存</button>
-    <button class="cancel-btn" onclick="closeModal('modal-assets')">取消</button>
+    <div class="modal-title" id="modal-account-title">編輯帳戶</div>
+    <div class="field">
+      <label>名稱</label>
+      <input type="text" id="acc-name" placeholder="例：台新銀行" />
+    </div>
+    <div class="field">
+      <label>金額</label>
+      <input type="number" id="acc-value" placeholder="0" />
+    </div>
+    <div class="field">
+      <label>類型</label>
+      <div class="type-toggle">
+        <button id="type-asset-btn" onclick="setAccType('asset')">資產</button>
+        <button id="type-debt-btn" onclick="setAccType('debt')">負債</button>
+      </div>
+    </div>
+    <button class="submit-btn" onclick="saveAccount()">儲存</button>
+    <button class="cancel-btn delete-btn" id="acc-delete-btn" onclick="deleteAccount()">刪除此項目</button>
+    <button class="cancel-btn" onclick="closeModal('modal-account')">取消</button>
+  </div>
+</div>
+
+<!-- ── Modal: ETF 市值快照 ── -->
+<div class="modal-overlay" id="modal-etf-snapshot">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">ETF 市值快照</div>
+    <div class="field"><label>庫存總現值</label><input type="number" id="etf-snap-value" /></div>
+    <div class="field"><label>報酬率 (%)</label><input type="number" id="etf-snap-return" step="0.01" /></div>
+    <div class="field"><label>成本</label><input type="number" id="etf-snap-cost" /></div>
+    <div class="field"><label>獲利</label><input type="number" id="etf-snap-gain" /></div>
+    <button class="submit-btn" onclick="saveEtfSnapshot()">儲存</button>
+    <button class="cancel-btn" onclick="closeModal('modal-etf-snapshot')">取消</button>
   </div>
 </div>
 
@@ -474,6 +526,7 @@
 //  DATA STORE  (localStorage)
 // ═══════════════════════════════════════
 const KEYS = {
+  accounts: 'fp_accounts',
   assets: 'fp_assets',
   ledger: 'fp_ledger',
   etf: 'fp_etf',
@@ -543,7 +596,34 @@ const defaultGoals = {
   ]
 };
 
+const defaultAccounts = [
+  { id: 'acc_taishin', name: '台新銀行',  value: 150000 },
+  { id: 'acc_cathay',  name: '國泰銀行',  value: 55000  },
+  { id: 'acc_mom',     name: '媽媽借款',  value: 66915  },
+  { id: 'acc_cc',      name: '信用卡帳單', value: -71972 },
+];
+
+function genId() { return 'acc_' + Date.now().toString(36); }
+
+// 從舊 fp_assets 格式自動搬移
+function loadAccounts() {
+  if (localStorage.getItem(KEYS.accounts)) return load(KEYS.accounts, defaultAccounts);
+  const old = load(KEYS.assets, null);
+  if (old && old.taishin !== undefined) {
+    const migrated = [
+      { id: genId(), name: '台新銀行',  value: old.taishin    || 0 },
+      { id: genId(), name: '國泰銀行',  value: old.cathay     || 0 },
+      { id: genId(), name: '媽媽借款',  value: old.mom        || 0 },
+      { id: genId(), name: '信用卡帳單', value: old.creditCard || 0 },
+    ];
+    save(KEYS.accounts, migrated);
+    return migrated;
+  }
+  return defaultAccounts;
+}
+
 // Load or init
+let accounts = loadAccounts();
 let assets  = load(KEYS.assets, defaultAssets);
 let ledger  = load(KEYS.ledger, defaultLedger);
 let etfLog  = load(KEYS.etf,    defaultEtf);
@@ -557,7 +637,7 @@ const fmt = n => Math.round(n).toLocaleString('zh-TW');
 const fmtSigned = n => (n >= 0 ? '+$' : '-$') + Math.abs(Math.round(n)).toLocaleString('zh-TW');
 
 function netWorth() {
-  return assets.taishin + assets.cathay + assets.etfValue + assets.mom + assets.creditCard;
+  return accounts.reduce((sum, a) => sum + a.value, 0) + assets.etfValue;
 }
 
 function ledgerByYear(year) {
@@ -617,7 +697,29 @@ function renderPage1() {
   const nw = netWorth();
   const houseGoal = goals.house;
   const pct = Math.min((nw / houseGoal) * 100, 100).toFixed(1);
-  const yearEst = 2031; // TODO: calculate dynamically
+  const yearEst = 2031;
+
+  const assetAccounts = accounts.filter(a => a.value >= 0);
+  const debtAccounts  = accounts.filter(a => a.value < 0);
+
+  const assetItems = assetAccounts.map(a => `
+    <div class="asset-item" onclick="openAccountModal('${a.id}')">
+      <div class="asset-name">${a.name}</div>
+      <div class="asset-val">$${fmt(a.value)}</div>
+    </div>`).join('');
+
+  const etfItem = `
+    <div class="asset-item" onclick="openEtfSnapshotModal()">
+      <div class="asset-name">ETF 市值</div>
+      <div class="asset-val accent">$${fmt(assets.etfValue)}</div>
+      <div class="asset-sub">+${assets.etfReturn}%</div>
+    </div>`;
+
+  const debtItems = debtAccounts.map(a => `
+    <div class="asset-item" onclick="openAccountModal('${a.id}')">
+      <div class="asset-name">${a.name}</div>
+      <div class="asset-val neg">-$${fmt(Math.abs(a.value))}</div>
+    </div>`).join('');
 
   $('content').innerHTML = `
     <div class="page-header">
@@ -625,11 +727,6 @@ function renderPage1() {
         <div class="page-title">財務總覽</div>
         <div class="page-sub">${new Date().getFullYear()}年 ${new Date().getMonth()+1}月</div>
       </div>
-      <button class="edit-btn" onclick="openAssetsModal()">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-          <path d="M11 2l3 3-9 9H2v-3L11 2z" stroke="#c4614a" stroke-width="1.8" stroke-linejoin="round"/>
-        </svg>
-      </button>
     </div>
 
     <div class="hero-card">
@@ -642,31 +739,20 @@ function renderPage1() {
 
     <div class="sec-label">資產帳戶</div>
     <div class="asset-grid">
-      <div class="asset-item" onclick="openAssetsModal('a-taishin')">
-        <div class="asset-name">台新銀行</div>
-        <div class="asset-val">$${fmt(assets.taishin)}</div>
-      </div>
-      <div class="asset-item" onclick="openAssetsModal('a-cathay')">
-        <div class="asset-name">國泰銀行</div>
-        <div class="asset-val">$${fmt(assets.cathay)}</div>
-      </div>
-      <div class="asset-item" onclick="openAssetsModal('a-etf')">
-        <div class="asset-name">ETF 市值</div>
-        <div class="asset-val accent">$${fmt(assets.etfValue)}</div>
-        <div class="asset-sub">+${assets.etfReturn}%</div>
-      </div>
-      <div class="asset-item" onclick="openAssetsModal('a-mom')">
-        <div class="asset-name">媽媽借款</div>
-        <div class="asset-val warn">$${fmt(assets.mom)}</div>
+      ${assetItems}
+      ${etfItem}
+      <div class="asset-item add-item-btn" onclick="openAddAccountModal('asset')">
+        <div class="add-icon">＋</div>
+        <div class="asset-name">新增帳戶</div>
       </div>
     </div>
 
     <div class="sec-label">負債</div>
     <div class="asset-grid">
-      <div class="asset-item full" onclick="openAssetsModal('a-cc')">
-        <div class="asset-name">信用卡帳單</div>
-        <div class="asset-val neg">-$${fmt(Math.abs(assets.creditCard))}</div>
-        <div class="asset-sub">台新 · 國泰 · 富邦</div>
+      ${debtItems}
+      <div class="asset-item add-item-btn" onclick="openAddAccountModal('debt')">
+        <div class="add-icon">＋</div>
+        <div class="asset-name">新增帳單</div>
       </div>
     </div>
   `;
@@ -885,25 +971,82 @@ function closeModal(id) {
   $(id).classList.remove('open');
 }
 
-function openAssetsModal(focusId) {
-  $('a-taishin').value = assets.taishin;
-  $('a-cathay').value = assets.cathay;
-  $('a-etf').value = assets.etfValue;
-  $('a-mom').value = assets.mom;
-  $('a-cc').value = assets.creditCard;
-  openModal('modal-assets');
-  if (focusId) setTimeout(() => $(focusId).focus(), 50);
+// ── 帳戶 CRUD ──
+let editingAccId = null;
+let newAccType = 'asset';
+
+function setAccType(type) {
+  newAccType = type;
+  $('type-asset-btn').classList.toggle('active', type === 'asset');
+  $('type-debt-btn').classList.toggle('active', type === 'debt');
 }
 
-function saveAssets() {
-  assets.taishin   = parseFloat($('a-taishin').value) || 0;
-  assets.cathay    = parseFloat($('a-cathay').value)  || 0;
-  assets.etfValue  = parseFloat($('a-etf').value)     || 0;
-  assets.mom       = parseFloat($('a-mom').value)     || 0;
-  assets.creditCard= parseFloat($('a-cc').value)      || 0;
+function openAccountModal(id) {
+  editingAccId = id;
+  const acc = accounts.find(a => a.id === id);
+  $('modal-account-title').textContent = '編輯帳戶';
+  $('acc-name').value = acc.name;
+  $('acc-value').value = Math.abs(acc.value);
+  setAccType(acc.value >= 0 ? 'asset' : 'debt');
+  $('acc-delete-btn').style.display = '';
+  openModal('modal-account');
+  setTimeout(() => $('acc-value').focus(), 50);
+}
+
+function openAddAccountModal(type) {
+  editingAccId = null;
+  $('modal-account-title').textContent = '新增帳戶';
+  $('acc-name').value = '';
+  $('acc-value').value = '';
+  setAccType(type);
+  $('acc-delete-btn').style.display = 'none';
+  openModal('modal-account');
+  setTimeout(() => $('acc-name').focus(), 50);
+}
+
+function saveAccount() {
+  const name = $('acc-name').value.trim();
+  const absVal = parseFloat($('acc-value').value) || 0;
+  const value = newAccType === 'debt' ? -absVal : absVal;
+  if (!name) return;
+  if (editingAccId) {
+    const idx = accounts.findIndex(a => a.id === editingAccId);
+    if (idx >= 0) accounts[idx] = { ...accounts[idx], name, value };
+  } else {
+    accounts.push({ id: genId(), name, value });
+  }
+  save(KEYS.accounts, accounts);
+  closeModal('modal-account');
+  renderPage1();
+}
+
+function deleteAccount() {
+  if (!editingAccId) return;
+  if (!confirm(`確定刪除「${accounts.find(a=>a.id===editingAccId)?.name}」？`)) return;
+  accounts = accounts.filter(a => a.id !== editingAccId);
+  save(KEYS.accounts, accounts);
+  closeModal('modal-account');
+  renderPage1();
+}
+
+// ── ETF 快照 ──
+function openEtfSnapshotModal() {
+  $('etf-snap-value').value  = assets.etfValue;
+  $('etf-snap-return').value = assets.etfReturn;
+  $('etf-snap-cost').value   = assets.etfCost;
+  $('etf-snap-gain').value   = assets.etfGain;
+  openModal('modal-etf-snapshot');
+  setTimeout(() => $('etf-snap-value').focus(), 50);
+}
+
+function saveEtfSnapshot() {
+  assets.etfValue  = parseFloat($('etf-snap-value').value)  || 0;
+  assets.etfReturn = parseFloat($('etf-snap-return').value) || 0;
+  assets.etfCost   = parseFloat($('etf-snap-cost').value)   || 0;
+  assets.etfGain   = parseFloat($('etf-snap-gain').value)   || 0;
   save(KEYS.assets, assets);
-  closeModal('modal-assets');
-  showPage(currentPage);
+  closeModal('modal-etf-snapshot');
+  renderPage1();
 }
 
 // Init year select for ledger modal
@@ -1002,9 +1145,22 @@ showPage(0);
 // ── Service Worker 註冊 ──
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/財務規劃app/money/sw.js').catch(err => {
+    navigator.serviceWorker.register('/money/sw.js').then(reg => {
+      // 新版 SW 安裝完成後，自動重新整理頁面
+      reg.addEventListener('updatefound', () => {
+        const newSW = reg.installing;
+        newSW.addEventListener('statechange', () => {
+          if (newSW.state === 'activated') window.location.reload();
+        });
+      });
+    }).catch(err => {
       console.warn('SW 註冊失敗:', err);
     });
+  });
+
+  // 新 SW 接管頁面時（skipWaiting 後），重新整理
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
   });
 }
 </script>
