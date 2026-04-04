@@ -607,15 +607,52 @@ const defaultLedger = [
 ];
 
 const defaultEtf = [
-  { date: '2026-01-15', name: '006208', amount: 5933,  price: 160.34, note: '' },
-  { date: '2026-01-15', name: 'QQQ',    amount: 2847,  price: 626.71, note: '' },
-  { date: '2026-01-15', name: 'IBB',    amount: 951,   price: 172.49, note: '' },
-  { date: '2026-02-17', name: 'QQQ',    amount: 2841,  price: 598.29, note: '' },
-  { date: '2026-02-17', name: 'IBB',    amount: 949,   price: 172.49, note: '' },
-  { date: '2026-02-23', name: '006208', amount: 5942,  price: 180.05, note: '' },
-  { date: '2026-03-10', name: '006208', amount: 5952,  price: 175.04, note: '' },
-  { date: '2026-03-16', name: 'QQQ',    amount: 2878,  price: 599.96, note: '' },
-  { date: '2026-03-16', name: 'IBB',    amount: 962,   price: 166.39, note: '' },
+  // 2025
+  { date: '2025-03-31', name: '006208', amount: 9978,   price: 101.81, note: '' },
+  { date: '2025-03-31', name: '00878',  amount: 6969,   price: 21.18,  note: '已賣' },
+  { date: '2025-04-07', name: '006208', amount: 2988,   price: 93.35,  note: '台股大跌日' },
+  { date: '2025-04-07', name: '00878',  amount: 2988,   price: 19.15,  note: '已賣' },
+  { date: '2025-04-07', name: 'QQQ',    amount: 4950,   price: 407.79, note: '' },
+  { date: '2025-04-07', name: 'IBB',    amount: 993,    price: 113.41, note: '' },
+  { date: '2025-04-09', name: '006208', amount: 9946,   price: 88.01,  note: '加碼' },
+  { date: '2025-05-05', name: '006208', amount: 3925,   price: 100.64, note: '' },
+  { date: '2025-05-05', name: 'QQQ',    amount: 4519,   price: 484.42, note: '' },
+  { date: '2025-05-05', name: 'IBB',    amount: 906,    price: 126,    note: '' },
+  { date: '2025-06-05', name: '006208', amount: 3961,   price: 107.05, note: '' },
+  { date: '2025-06-05', name: 'QQQ',    amount: 4495,   price: 530.1,  note: '' },
+  { date: '2025-06-05', name: 'IBB',    amount: 901,    price: 125.5,  note: '' },
+  { date: '2025-07-07', name: '006208', amount: 3987,   price: 113.91, note: '' },
+  { date: '2025-07-07', name: 'QQQ',    amount: 4364,   price: 553.6,  note: '' },
+  { date: '2025-07-07', name: 'IBB',    amount: 875,    price: 129.41, note: '' },
+  { date: '2025-08-05', name: '006208', amount: 3961,   price: 120,    note: '' },
+  { date: '2025-08-05', name: 'QQQ',    amount: 4496,   price: 565.28, note: '' },
+  { date: '2025-08-05', name: 'IBB',    amount: 902,    price: 134.02, note: '' },
+  { date: '2025-08-12', name: '006208', amount: 248,    price: 123.59, note: '' },
+  { date: '2025-08-14', name: '00878',  amount: -10286, price: 21.21,  note: '賣出' },
+  { date: '2025-09-15', name: '006208', amount: 3919,   price: 130.63, note: '' },
+  { date: '2025-09-15', name: 'QQQ',    amount: 4520,   price: 588.46, note: '' },
+  { date: '2025-09-15', name: 'IBB',    amount: 907,    price: 141.1,  note: '' },
+  { date: '2025-10-06', name: 'QQQ',    amount: 4559,   price: 608.45, note: '' },
+  { date: '2025-10-06', name: 'IBB',    amount: 915,    price: 151.79, note: '' },
+  { date: '2025-10-07', name: '006208', amount: 3878,   price: 143.6,  note: '' },
+  { date: '2025-11-05', name: '006208', amount: 3971,   price: 147.07, note: '' },
+  { date: '2025-11-05', name: 'QQQ',    amount: 4649,   price: 618.45, note: '' },
+  { date: '2025-11-05', name: 'IBB',    amount: 933,    price: 155.72, note: '' },
+  { date: '2025-12-15', name: '006208', amount: 5602,   price: 143.63, note: '股息再投資' },
+  { date: '2025-12-15', name: 'QQQ',    amount: 4721,   price: 618.21, note: '' },
+  { date: '2025-12-15', name: 'IBB',    amount: 947,    price: 169.65, note: '' },
+  // 2026
+  { date: '2026-01-15', name: '006208', amount: 5933,   price: 160.34, note: '' },
+  { date: '2026-01-15', name: 'QQQ',    amount: 2847,   price: 626.71, note: '' },
+  { date: '2026-01-15', name: 'IBB',    amount: 951,    price: 172.49, note: '' },
+  { date: '2026-02-17', name: 'QQQ',    amount: 2841,   price: 598.29, note: '' },
+  { date: '2026-02-17', name: 'IBB',    amount: 949,    price: 172.49, note: '' },
+  { date: '2026-02-23', name: '006208', amount: 5942,   price: 180.05, note: '' },
+  { date: '2026-03-10', name: '006208', amount: 5952,   price: 175.04, note: '' },
+  { date: '2026-03-16', name: 'QQQ',    amount: 2878,   price: 599.96, note: '' },
+  { date: '2026-03-16', name: 'IBB',    amount: 962,    price: 166.39, note: '' },
+  { date: '2026-03-25', name: 'QQQ',    amount: 4790,   price: 589.14, note: '' },
+  { date: '2026-03-26', name: '006208', amount: 9916,   price: 177.07, note: '' },
 ];
 
 const defaultGoals = {
@@ -687,6 +724,20 @@ if (!has2024) {
   save(KEYS.ledger, ledger);
 }
 
+// 補入 2025 ETF 資料
+const has2025etf = etfLog.some(r => r.date.startsWith('2025'));
+if (!has2025etf) {
+  etfLog = [...defaultEtf.filter(r => r.date.startsWith('2025')), ...etfLog];
+  save(KEYS.etf, etfLog);
+}
+
+// 補入 2026 新增筆數（3/25、3/26）
+const newDates = ['2026-03-25', '2026-03-26'];
+newDates.forEach(d => {
+  const missing = defaultEtf.filter(r => r.date === d && !etfLog.some(e => e.date === d && e.name === r.name));
+  if (missing.length) { etfLog = [...etfLog, ...missing]; save(KEYS.etf, etfLog); }
+});
+
 // ═══════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════
@@ -719,6 +770,19 @@ function etfTotals() {
 
 function etfYearTotal(year) {
   return etfLog.filter(r => r.date.startsWith(year)).reduce((s,r) => s + r.amount, 0);
+}
+
+function etfByYear(year) {
+  return etfLog.filter(r => r.date.startsWith(year)).sort((a,b) => b.date.localeCompare(a.date));
+}
+
+function etfYearBreakdown(year) {
+  const map = {};
+  etfByYear(year).forEach(r => {
+    if (!map[r.name]) map[r.name] = 0;
+    map[r.name] += r.amount;
+  });
+  return map;
 }
 
 // ═══════════════════════════════════════
@@ -811,6 +875,7 @@ function initDragSort() {
 // ═══════════════════════════════════════
 let currentPage = 0;
 let currentLedgerYear = 2026;
+let currentEtfYear = 2026;
 
 function showPage(idx) {
   currentPage = idx;
@@ -981,42 +1046,48 @@ function switchLedgerYear(y) {
 
 // ── Page 3: 投資 ──
 function renderPage3() {
-  const totals = etfTotals();
-  const etfNames = Object.keys(totals);
-  const colors = { '006208': '#6baed6', 'QQQ': '#74c69d', 'IBB': '#74c69d' };
-  const textColors = { '006208': '#1a4a7a', 'QQQ': '#1a5a3a', 'IBB': '#2a6a4a' };
+  const colors   = { '006208': '#6baed6', '00878': '#e8a0a8', 'QQQ': '#74c69d', 'IBB': '#f4a65e' };
+  const tColors  = { '006208': '#1a4a7a', '00878': '#7a2a3a', 'QQQ': '#1a5a3a', 'IBB': '#7a3a10' };
 
-  const etfRows = etfNames.map(name => {
-    const d = totals[name];
-    const col = colors[name] || '#c4614a';
-    const tcol = textColors[name] || '#5a2a1a';
+  const years = [...new Set(etfLog.map(r => r.date.slice(0,4)))].sort((a,b) => b-a);
+  const yearBtns = years.map(y =>
+    `<button class="tab-btn ${Number(y) === currentEtfYear ? 'active' : ''}" onclick="switchEtfYear(${y})">${y}</button>`
+  ).join('');
+
+  const yearData   = etfByYear(String(currentEtfYear));
+  const yearTotal  = yearData.reduce((s,r) => s + r.amount, 0);
+  const breakdown  = etfYearBreakdown(String(currentEtfYear));
+
+  const breakdownRows = Object.entries(breakdown).map(([name, amt]) => {
+    const col  = colors[name]  || '#c4614a';
+    const tcol = tColors[name] || '#5a2a1a';
     return `<div class="entry-row">
       <div class="entry-left">
         <div class="entry-dot" style="background:${col};"></div>
-        <div>
-          <div class="entry-name">${name}</div>
-          <div class="entry-sub">${d.count} 筆 · 至今累計</div>
-        </div>
+        <div><div class="entry-name">${name}</div></div>
       </div>
       <div class="entry-right">
-        <div class="entry-amount" style="color:${tcol};">$${fmt(d.amount)}</div>
+        <div class="entry-amount" style="color:${tcol};">$${fmt(amt)}</div>
       </div>
     </div>`;
   }).join('');
 
-  const years = [...new Set(etfLog.map(r => r.date.slice(0,4)))].sort((a,b) => b-a);
-  const yearRows = years.map(y => {
-    const total = etfYearTotal(y);
-    const isLatest = y === years[0];
+  const recordRows = yearData.map(r => {
+    const col  = colors[r.name]  || '#c4614a';
+    const tcol = tColors[r.name] || '#5a2a1a';
+    const isSell = r.amount < 0;
+    const noteHtml = r.note ? `<div class="entry-note"><div class="entry-note-dot"></div>${r.note}</div>` : '';
     return `<div class="entry-row">
       <div class="entry-left">
-        <div class="entry-dot" style="background:${isLatest ? '#FFBCA6' : '#c4614a'};"></div>
+        <div class="entry-dot" style="background:${col};"></div>
         <div>
-          <div class="entry-name">${y}年</div>
+          <div class="entry-name">${r.date.slice(5).replace('-','/')} &nbsp;<span style="color:${col};font-weight:600;">${r.name}</span></div>
+          ${noteHtml}
         </div>
       </div>
       <div class="entry-right">
-        <div class="entry-amount" style="color:${isLatest ? '#c48a3a' : '#c4614a'};">$${fmt(total)}</div>
+        <div class="entry-amount" style="color:${isSell ? '#d05a3a' : tcol};">${isSell ? '-' : ''}$${fmt(Math.abs(r.amount))}</div>
+        <div class="entry-detail">@ ${r.price}</div>
       </div>
     </div>`;
   }).join('');
@@ -1055,17 +1126,30 @@ function renderPage3() {
       </div>
     </div>
 
-    <div class="sec-label">各檔投入總額</div>
-    <div class="card">${etfRows}</div>
+    <div class="tab-row">${yearBtns}</div>
+
+    <div class="sec-label">${currentEtfYear} 年投入總覽</div>
+    <div class="card" style="padding:16px 18px;">
+      <div style="font-size:28px;font-weight:700;color:#c4614a;">$${fmt(yearTotal)}</div>
+      <div style="font-size:11px;color:#c4a89a;margin-top:4px;">共 ${yearData.length} 筆</div>
+    </div>
+
+    <div class="sec-label">各檔明細</div>
+    <div class="card">${breakdownRows || '<div style="padding:8px 0;font-size:13px;color:#c4a89a;text-align:center;">尚無資料</div>'}</div>
 
     <button class="add-btn" onclick="openModal('modal-etf')">
       <div class="add-circle">+</div>
       <span>新增投資筆數</span>
     </button>
 
-    <div class="sec-label">年度投入</div>
-    <div class="card">${yearRows}</div>
+    <div class="sec-label">投資紀錄</div>
+    <div class="card">${recordRows || '<div style="padding:8px 0;font-size:13px;color:#c4a89a;text-align:center;">尚無資料</div>'}</div>
   `;
+}
+
+function switchEtfYear(y) {
+  currentEtfYear = y;
+  renderPage3();
 }
 
 // ── Page 4: 目標 ──
