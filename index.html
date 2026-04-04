@@ -574,6 +574,24 @@ const defaultAssets = {
 };
 
 const defaultLedger = [
+  // 2022
+  { year: 2022, month: 9,  income: 48500, expense: 27262, note: '' },
+  { year: 2022, month: 10, income: 47700, expense: 28528, note: '' },
+  { year: 2022, month: 11, income: 40500, expense: 25228, note: '' },
+  { year: 2022, month: 12, income: 57718, expense: 21622, note: '發票$2000' },
+  // 2023
+  { year: 2023, month: 1,  income: 78183, expense: 44652, note: '政府獎勵金兩萬、紅包支出$9634' },
+  { year: 2023, month: 2,  income: 57684, expense: 30154, note: '開始付牙套' },
+  { year: 2023, month: 3,  income: 57184, expense: 31656, note: '' },
+  { year: 2023, month: 4,  income: 64500, expense: 69523, note: '政府16000，出國35000' },
+  { year: 2023, month: 5,  income: 43669, expense: 37774, note: '母親節6600' },
+  { year: 2023, month: 6,  income: 57684, expense: 46195, note: '金門10703' },
+  { year: 2023, month: 7,  income: 72184, expense: 23882, note: '' },
+  { year: 2023, month: 8,  income: 44184, expense: 34843, note: '' },
+  { year: 2023, month: 9,  income: 12000, expense: 47549, note: '' },
+  { year: 2023, month: 10, income: 55184, expense: 50271, note: '' },
+  { year: 2023, month: 11, income: 36384, expense: 45633, note: '' },
+  { year: 2023, month: 12, income: 39384, expense: 48986, note: 'iphone 18000' },
   // 2024
   { year: 2024, month: 1,  income: 43884, expense: 34117, note: '' },
   { year: 2024, month: 2,  income: 74684, expense: 60833, note: '紅包16000，香港12000' },
@@ -717,12 +735,13 @@ let ledger  = load(KEYS.ledger, defaultLedger);
 let etfLog  = load(KEYS.etf,    defaultEtf);
 let goals   = load(KEYS.goals,  defaultGoals);
 
-// 補入 2024 資料（已有 localStorage 的使用者）
-const has2024 = ledger.some(r => r.year === 2024);
-if (!has2024) {
-  ledger = [...defaultLedger.filter(r => r.year === 2024), ...ledger];
-  save(KEYS.ledger, ledger);
-}
+// 補入舊年份資料（已有 localStorage 的使用者）
+[2022, 2023, 2024].forEach(y => {
+  if (!ledger.some(r => r.year === y)) {
+    ledger = [...defaultLedger.filter(r => r.year === y), ...ledger];
+  }
+});
+save(KEYS.ledger, ledger);
 
 // 補入 2025 ETF 資料
 const has2025etf = etfLog.some(r => r.date.startsWith('2025'));
@@ -998,7 +1017,7 @@ function renderPage2() {
     </div>`;
   }).join('');
 
-  const yearBtns = [2026, 2025, 2024].map(y =>
+  const yearBtns = [2026, 2025, 2024, 2023, 2022].map(y =>
     `<button class="tab-btn ${y === currentLedgerYear ? 'active' : ''}" onclick="switchLedgerYear(${y})">${y}</button>`
   ).join('');
 
@@ -1294,7 +1313,7 @@ function saveEtfSnapshot() {
 function initLedgerModal() {
   const sel = $('ledger-year');
   sel.innerHTML = '';
-  [2026, 2025, 2024].forEach(y => {
+  [2026, 2025, 2024, 2023, 2022].forEach(y => {
     const o = document.createElement('option');
     o.value = y; o.textContent = y + '年';
     sel.appendChild(o);
