@@ -504,7 +504,7 @@
 <div class="modal-overlay" id="modal-etf">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">新增投資筆數</div>
+    <div class="modal-title" id="etf-modal-title">新增投資筆數</div>
     <div class="field-row">
       <div class="field">
         <label>日期</label>
@@ -524,6 +524,7 @@
       <input type="text" id="etf-note" placeholder="可選" />
     </div>
     <button class="submit-btn" onclick="saveEtf()">儲存</button>
+    <button class="cancel-btn delete-btn" id="etf-delete-btn" onclick="deleteEtf()">刪除此筆紀錄</button>
     <button class="cancel-btn" onclick="closeModal('modal-etf')">取消</button>
   </div>
 </div>
@@ -1136,12 +1137,13 @@ function renderPage3() {
     </div>`;
   }).join('');
 
-  const recordRows = yearData.map(r => {
+  const recordRows = yearData.map((r, i) => {
     const col  = colors[r.name]  || '#c4614a';
     const tcol = tColors[r.name] || '#5a2a1a';
     const isSell = r.amount < 0;
     const noteHtml = r.note ? `<div class="entry-note"><div class="entry-note-dot"></div>${r.note}</div>` : '';
-    return `<div class="entry-row">
+    const globalIdx = etfLog.indexOf(r);
+    return `<div class="entry-row" style="cursor:pointer" onclick="openEditEtf(${globalIdx})">
       <div class="entry-left">
         <div class="entry-dot" style="background:${col};"></div>
         <div>
@@ -1196,7 +1198,7 @@ function renderPage3() {
     <div class="sec-label">各檔明細</div>
     <div class="card">${breakdownRows || '<div style="padding:8px 0;font-size:13px;color:#c4a89a;text-align:center;">尚無資料</div>'}</div>
 
-    <button class="add-btn" onclick="openModal('modal-etf')">
+    <button class="add-btn" onclick="openNewEtf()">
       <div class="add-circle">+</div>
       <span>新增投資筆數</span>
     </button>
@@ -1563,6 +1565,45 @@ function saveLedger() {
   renderPage2();
 }
 
+let editingEtfIdx = null;
+
+function openNewEtf() {
+  editingEtfIdx = null;
+  $('etf-modal-title').textContent = '新增投資筆數';
+  $('etf-date').value   = new Date().toISOString().slice(0, 10);
+  $('etf-name').value   = '';
+  $('etf-amount').value = '';
+  $('etf-price').value  = '';
+  $('etf-note').value   = '';
+  $('etf-delete-btn').style.display = 'none';
+  openModal('modal-etf');
+  setTimeout(() => $('etf-name').focus(), 50);
+}
+
+function openEditEtf(idx) {
+  editingEtfIdx = idx;
+  const r = etfLog[idx];
+  $('etf-modal-title').textContent = '編輯投資紀錄';
+  $('etf-date').value   = r.date;
+  $('etf-name').value   = r.name;
+  $('etf-amount').value = r.amount;
+  $('etf-price').value  = r.price;
+  $('etf-note').value   = r.note || '';
+  $('etf-delete-btn').style.display = '';
+  openModal('modal-etf');
+  setTimeout(() => $('etf-amount').focus(), 50);
+}
+
+function deleteEtf() {
+  if (editingEtfIdx === null) return;
+  const r = etfLog[editingEtfIdx];
+  if (!confirm(`確定刪除 ${r.date} ${r.name} 這筆紀錄？`)) return;
+  etfLog.splice(editingEtfIdx, 1);
+  save(KEYS.etf, etfLog);
+  closeModal('modal-etf');
+  renderPage3();
+}
+
 function saveEtf() {
   const date   = $('etf-date').value;
   const name   = $('etf-name').value.trim().toUpperCase();
@@ -1570,7 +1611,11 @@ function saveEtf() {
   const price  = parseFloat($('etf-price').value)  || 0;
   const note   = $('etf-note').value.trim();
   if (!date || !name || !amount) return;
-  etfLog.push({ date, name, amount, price, note });
+  if (editingEtfIdx !== null) {
+    etfLog[editingEtfIdx] = { date, name, amount, price, note };
+  } else {
+    etfLog.push({ date, name, amount, price, note });
+  }
   save(KEYS.etf, etfLog);
   closeModal('modal-etf');
   renderPage3();
@@ -1625,7 +1670,6 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 //  INIT
 // ═══════════════════════════════════════
 initLedgerModal();
-$('etf-date').value = new Date().toISOString().slice(0,10);
 showPage(0);
 
 // ── Service Worker 註冊 ──
