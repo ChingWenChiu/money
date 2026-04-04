@@ -128,6 +128,8 @@
       gap: 8px;
       margin-bottom: 14px;
     }
+    .asset-item { cursor: pointer; }
+    .asset-item:active { opacity: 0.7; }
     .asset-item {
       background: #fff;
       border-radius: 14px;
@@ -640,20 +642,20 @@ function renderPage1() {
 
     <div class="sec-label">資產帳戶</div>
     <div class="asset-grid">
-      <div class="asset-item">
+      <div class="asset-item" onclick="openAssetsModal('a-taishin')">
         <div class="asset-name">台新銀行</div>
         <div class="asset-val">$${fmt(assets.taishin)}</div>
       </div>
-      <div class="asset-item">
+      <div class="asset-item" onclick="openAssetsModal('a-cathay')">
         <div class="asset-name">國泰銀行</div>
         <div class="asset-val">$${fmt(assets.cathay)}</div>
       </div>
-      <div class="asset-item">
+      <div class="asset-item" onclick="openAssetsModal('a-etf')">
         <div class="asset-name">ETF 市值</div>
         <div class="asset-val accent">$${fmt(assets.etfValue)}</div>
         <div class="asset-sub">+${assets.etfReturn}%</div>
       </div>
-      <div class="asset-item">
+      <div class="asset-item" onclick="openAssetsModal('a-mom')">
         <div class="asset-name">媽媽借款</div>
         <div class="asset-val warn">$${fmt(assets.mom)}</div>
       </div>
@@ -661,7 +663,7 @@ function renderPage1() {
 
     <div class="sec-label">負債</div>
     <div class="asset-grid">
-      <div class="asset-item full">
+      <div class="asset-item full" onclick="openAssetsModal('a-cc')">
         <div class="asset-name">信用卡帳單</div>
         <div class="asset-val neg">-$${fmt(Math.abs(assets.creditCard))}</div>
         <div class="asset-sub">台新 · 國泰 · 富邦</div>
@@ -883,13 +885,14 @@ function closeModal(id) {
   $(id).classList.remove('open');
 }
 
-function openAssetsModal() {
+function openAssetsModal(focusId) {
   $('a-taishin').value = assets.taishin;
   $('a-cathay').value = assets.cathay;
   $('a-etf').value = assets.etfValue;
   $('a-mom').value = assets.mom;
   $('a-cc').value = assets.creditCard;
   openModal('modal-assets');
+  if (focusId) setTimeout(() => $(focusId).focus(), 50);
 }
 
 function saveAssets() {
