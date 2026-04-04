@@ -908,6 +908,9 @@ function renderPage2() {
   const yearSavings = yearData.reduce((s, r) => s + (r.income - r.expense), 0);
   const yearIncome  = yearData.reduce((s, r) => s + r.income,  0);
   const yearExpense = yearData.reduce((s, r) => s + r.expense, 0);
+  const months = yearData.length || 1;
+  const avgIncome  = Math.round(yearIncome  / months);
+  const avgExpense = Math.round(yearExpense / months);
   const savingsColor = yearSavings >= 0 ? '#4a9e72' : '#d05a3a';
 
   const rows = yearData.map(r => {
@@ -944,12 +947,21 @@ function renderPage2() {
 
     <div class="tab-row">${yearBtns}</div>
 
-    <div class="sec-label">${currentLedgerYear} 年存款總額</div>
+    <div class="sec-label">${currentLedgerYear} 年存款總覽</div>
     <div class="card" style="padding:16px 18px;">
       <div style="font-size:28px;font-weight:700;color:${savingsColor};">${fmtSigned(yearSavings)}</div>
-      <div style="font-size:11px;color:#c4a89a;margin-top:6px;">
-        收入 $${fmt(yearIncome)} &nbsp;·&nbsp; 支出 $${fmt(yearExpense)}
-        &nbsp;·&nbsp; 共 ${yearData.length} 個月
+      <div style="font-size:11px;color:#c4a89a;margin-top:4px;">
+        全年收入 $${fmt(yearIncome)} &nbsp;·&nbsp; 全年支出 $${fmt(yearExpense)} &nbsp;·&nbsp; 共 ${yearData.length} 個月
+      </div>
+      <div style="display:flex;gap:12px;margin-top:12px;">
+        <div style="flex:1;background:#f5f0ed;border-radius:10px;padding:10px 12px;">
+          <div style="font-size:10px;color:#c4a89a;margin-bottom:3px;">月平均收入</div>
+          <div style="font-size:16px;font-weight:700;color:#4a9e72;">$${fmt(avgIncome)}</div>
+        </div>
+        <div style="flex:1;background:#f5f0ed;border-radius:10px;padding:10px 12px;">
+          <div style="font-size:10px;color:#c4a89a;margin-bottom:3px;">月平均支出</div>
+          <div style="font-size:16px;font-weight:700;color:#d05a3a;">$${fmt(avgExpense)}</div>
+        </div>
       </div>
     </div>
 
