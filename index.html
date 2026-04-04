@@ -591,134 +591,26 @@ function save(key, val) {
 
 // ── Default Data (your real numbers) ──
 const defaultAssets = {
-  taishin: 150000,
-  cathay: 55000,
-  etfValue: 211067,
-  etfReturn: 19.10,
-  etfCost: 177214,
-  etfGain: 33853,
-  mom: 66915,
-  creditCard: -71972,
+  taishin: 0,
+  cathay: 0,
+  etfValue: 0,
+  etfReturn: 0,
+  etfCost: 0,
+  etfGain: 0,
+  mom: 0,
+  creditCard: 0,
 };
 
-const defaultLedger = [
-  // 2022
-  { year: 2022, month: 9,  income: 48500, expense: 27262, note: '' },
-  { year: 2022, month: 10, income: 47700, expense: 28528, note: '' },
-  { year: 2022, month: 11, income: 40500, expense: 25228, note: '' },
-  { year: 2022, month: 12, income: 57718, expense: 21622, note: '發票$2000' },
-  // 2023
-  { year: 2023, month: 1,  income: 78183, expense: 44652, note: '政府獎勵金兩萬、紅包支出$9634' },
-  { year: 2023, month: 2,  income: 57684, expense: 30154, note: '開始付牙套' },
-  { year: 2023, month: 3,  income: 57184, expense: 31656, note: '' },
-  { year: 2023, month: 4,  income: 64500, expense: 69523, note: '政府16000，出國35000' },
-  { year: 2023, month: 5,  income: 43669, expense: 37774, note: '母親節6600' },
-  { year: 2023, month: 6,  income: 57684, expense: 46195, note: '金門10703' },
-  { year: 2023, month: 7,  income: 72184, expense: 23882, note: '' },
-  { year: 2023, month: 8,  income: 44184, expense: 34843, note: '' },
-  { year: 2023, month: 9,  income: 12000, expense: 47549, note: '' },
-  { year: 2023, month: 10, income: 55184, expense: 50271, note: '' },
-  { year: 2023, month: 11, income: 36384, expense: 45633, note: '' },
-  { year: 2023, month: 12, income: 39384, expense: 48986, note: 'iphone 18000' },
-  // 2024
-  { year: 2024, month: 1,  income: 43884, expense: 34117, note: '' },
-  { year: 2024, month: 2,  income: 74684, expense: 60833, note: '紅包16000，香港12000' },
-  { year: 2024, month: 3,  income: 37065, expense: 66378, note: '維持器＋電動牙刷11500；港澳11160；沖繩10656' },
-  { year: 2024, month: 4,  income: 92765, expense: 40073, note: '' },
-  { year: 2024, month: 5,  income: 37265, expense: 36900, note: '' },
-  { year: 2024, month: 6,  income: 38065, expense: 52774, note: '綠島6283；HPV15000' },
-  { year: 2024, month: 7,  income: 40065, expense: 38092, note: '花蓮4600；牙套最後一期' },
-  { year: 2024, month: 8,  income: 41765, expense: 31576, note: '眼鏡6280' },
-  { year: 2024, month: 9,  income: 78065, expense: 27123, note: '藝聲家40000' },
-  { year: 2024, month: 10, income: 58265, expense: 33203, note: '' },
-  { year: 2024, month: 11, income: 39565, expense: 43004, note: '環島18000' },
-  { year: 2024, month: 12, income: 35365, expense: 34589, note: '' },
-  // 2025
-  { year: 2025, month: 1,  income: 72565, expense: 47005, note: '紅包 + 孝親費' },
-  { year: 2025, month: 2,  income: 39800, expense: 29043, note: '' },
-  { year: 2025, month: 3,  income: 40400, expense: 40418, note: '' },
-  { year: 2025, month: 4,  income: 51300, expense: 28339, note: '' },
-  { year: 2025, month: 5,  income: 57200, expense: 37339, note: '' },
-  { year: 2025, month: 6,  income: 53500, expense: 38998, note: '台南、健檢' },
-  { year: 2025, month: 7,  income: 43300, expense: 35469, note: '改造家' },
-  { year: 2025, month: 8,  income: 44500, expense: 29924, note: '' },
-  { year: 2025, month: 9,  income: 42000, expense: 39657, note: '香港旅遊 $15,000' },
-  { year: 2025, month: 10, income: 45650, expense: 32293, note: '' },
-  { year: 2025, month: 11, income: 62180, expense: 76010, note: '普發 $10,000，出國 $46,000' },
-  { year: 2025, month: 12, income: 40000, expense: 38357, note: '珍珠、燙髮' },
-  // 2026
-  { year: 2026, month: 1,  income: 48000, expense: 38800, note: '' },
-  { year: 2026, month: 2,  income: 46000, expense: 37600, note: '過年·紅包' },
-  { year: 2026, month: 3,  income: 52000, expense: 39600, note: '' },
-];
+const defaultLedger = [];
 
-const defaultEtf = [
-  // 2025
-  { date: '2025-03-31', name: '006208', amount: 9978,   price: 101.81, note: '' },
-  { date: '2025-03-31', name: '00878',  amount: 6969,   price: 21.18,  note: '已賣' },
-  { date: '2025-04-07', name: '006208', amount: 2988,   price: 93.35,  note: '台股大跌日' },
-  { date: '2025-04-07', name: '00878',  amount: 2988,   price: 19.15,  note: '已賣' },
-  { date: '2025-04-07', name: 'QQQ',    amount: 4950,   price: 407.79, note: '' },
-  { date: '2025-04-07', name: 'IBB',    amount: 993,    price: 113.41, note: '' },
-  { date: '2025-04-09', name: '006208', amount: 9946,   price: 88.01,  note: '加碼' },
-  { date: '2025-05-05', name: '006208', amount: 3925,   price: 100.64, note: '' },
-  { date: '2025-05-05', name: 'QQQ',    amount: 4519,   price: 484.42, note: '' },
-  { date: '2025-05-05', name: 'IBB',    amount: 906,    price: 126,    note: '' },
-  { date: '2025-06-05', name: '006208', amount: 3961,   price: 107.05, note: '' },
-  { date: '2025-06-05', name: 'QQQ',    amount: 4495,   price: 530.1,  note: '' },
-  { date: '2025-06-05', name: 'IBB',    amount: 901,    price: 125.5,  note: '' },
-  { date: '2025-07-07', name: '006208', amount: 3987,   price: 113.91, note: '' },
-  { date: '2025-07-07', name: 'QQQ',    amount: 4364,   price: 553.6,  note: '' },
-  { date: '2025-07-07', name: 'IBB',    amount: 875,    price: 129.41, note: '' },
-  { date: '2025-08-05', name: '006208', amount: 3961,   price: 120,    note: '' },
-  { date: '2025-08-05', name: 'QQQ',    amount: 4496,   price: 565.28, note: '' },
-  { date: '2025-08-05', name: 'IBB',    amount: 902,    price: 134.02, note: '' },
-  { date: '2025-08-12', name: '006208', amount: 248,    price: 123.59, note: '' },
-  { date: '2025-08-14', name: '00878',  amount: -10286, price: 21.21,  note: '賣出' },
-  { date: '2025-09-15', name: '006208', amount: 3919,   price: 130.63, note: '' },
-  { date: '2025-09-15', name: 'QQQ',    amount: 4520,   price: 588.46, note: '' },
-  { date: '2025-09-15', name: 'IBB',    amount: 907,    price: 141.1,  note: '' },
-  { date: '2025-10-06', name: 'QQQ',    amount: 4559,   price: 608.45, note: '' },
-  { date: '2025-10-06', name: 'IBB',    amount: 915,    price: 151.79, note: '' },
-  { date: '2025-10-07', name: '006208', amount: 3878,   price: 143.6,  note: '' },
-  { date: '2025-11-05', name: '006208', amount: 3971,   price: 147.07, note: '' },
-  { date: '2025-11-05', name: 'QQQ',    amount: 4649,   price: 618.45, note: '' },
-  { date: '2025-11-05', name: 'IBB',    amount: 933,    price: 155.72, note: '' },
-  { date: '2025-12-15', name: '006208', amount: 5602,   price: 143.63, note: '股息再投資' },
-  { date: '2025-12-15', name: 'QQQ',    amount: 4721,   price: 618.21, note: '' },
-  { date: '2025-12-15', name: 'IBB',    amount: 947,    price: 169.65, note: '' },
-  // 2026
-  { date: '2026-01-15', name: '006208', amount: 5933,   price: 160.34, note: '' },
-  { date: '2026-01-15', name: 'QQQ',    amount: 2847,   price: 626.71, note: '' },
-  { date: '2026-01-15', name: 'IBB',    amount: 951,    price: 172.49, note: '' },
-  { date: '2026-02-17', name: 'QQQ',    amount: 2841,   price: 598.29, note: '' },
-  { date: '2026-02-17', name: 'IBB',    amount: 949,    price: 172.49, note: '' },
-  { date: '2026-02-23', name: '006208', amount: 5942,   price: 180.05, note: '' },
-  { date: '2026-03-10', name: '006208', amount: 5952,   price: 175.04, note: '' },
-  { date: '2026-03-16', name: 'QQQ',    amount: 2878,   price: 599.96, note: '' },
-  { date: '2026-03-16', name: 'IBB',    amount: 962,    price: 166.39, note: '' },
-  { date: '2026-03-25', name: 'QQQ',    amount: 4790,   price: 589.14, note: '' },
-  { date: '2026-03-26', name: '006208', amount: 9916,   price: 177.07, note: '' },
-];
+const defaultEtf = [];
 
 const defaultGoals = {
-  house: 3000000,
-  milestones: [
-    { age: 25, year: 2025, target: 380000 },
-    { age: 26, year: 2026, target: 700000 },
-    { age: 27, year: 2027, target: 1150000 },
-    { age: 28, year: 2028, target: 1650000 },
-    { age: 29, year: 2029, target: 2200000 },
-    { age: 30, year: 2030, target: 2800000 },
-  ]
+  house: 0,
+  milestones: []
 };
 
-const defaultAccounts = [
-  { id: 'acc_taishin', name: '台新銀行',  value: 150000 },
-  { id: 'acc_cathay',  name: '國泰銀行',  value: 55000  },
-  { id: 'acc_mom',     name: '媽媽借款',  value: 66915,  exclude: true },
-  { id: 'acc_cc',      name: '信用卡帳單', value: -71972 },
-];
+const defaultAccounts = [];
 
 let _idSeq = 0;
 function genId() { return 'acc_' + Date.now().toString(36) + '_' + (++_idSeq); }
@@ -774,27 +666,6 @@ if (!localStorage.getItem('fp_cleanup_v3')) {
   localStorage.setItem('fp_cleanup_v3', '1');
 }
 
-// 補入舊年份資料（已有 localStorage 的使用者）
-[2022, 2023, 2024].forEach(y => {
-  if (!ledger.some(r => r.year === y)) {
-    ledger = [...defaultLedger.filter(r => r.year === y), ...ledger];
-  }
-});
-save(KEYS.ledger, ledger);
-
-// 補入 2025 ETF 資料
-const has2025etf = etfLog.some(r => r.date.startsWith('2025'));
-if (!has2025etf) {
-  etfLog = [...defaultEtf.filter(r => r.date.startsWith('2025')), ...etfLog];
-  save(KEYS.etf, etfLog);
-}
-
-// 補入 2026 新增筆數（3/25、3/26）
-const newDates = ['2026-03-25', '2026-03-26'];
-newDates.forEach(d => {
-  const missing = defaultEtf.filter(r => r.date === d && !etfLog.some(e => e.date === d && e.name === r.name));
-  if (missing.length) { etfLog = [...etfLog, ...missing]; save(KEYS.etf, etfLog); }
-});
 
 // ═══════════════════════════════════════
 //  HELPERS
