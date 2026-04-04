@@ -905,7 +905,13 @@ function initDragSort() {
 
         // 讀取 DOM 新順序，更新 accounts
         const newOrder = [...grid.querySelectorAll('.asset-item[data-id]')].map(el => el.dataset.id);
-        const reordered = newOrder.map(id => accounts.find(a => a.id === id)).filter(Boolean);
+        if (isAsset) {
+          // 儲存 ETF 位置
+          const etfIdx = newOrder.indexOf('__etf__');
+          if (etfIdx !== -1) assets.etfPosition = etfIdx;
+          save(KEYS.assets, assets);
+        }
+        const reordered = newOrder.filter(id => id !== '__etf__').map(id => accounts.find(a => a.id === id)).filter(Boolean);
         const other = accounts.filter(a => isAsset ? a.value < 0 : a.value >= 0);
         accounts = isAsset ? [...reordered, ...other] : [...other, ...reordered];
         save(KEYS.accounts, accounts);
@@ -957,18 +963,24 @@ function renderPage1() {
   const assetAccounts = accounts.filter(a => a.value >= 0);
   const debtAccounts  = accounts.filter(a => a.value < 0);
 
-  const assetItems = assetAccounts.map(a => `
-    <div class="asset-item${a.exclude ? ' excluded' : ''}" data-id="${a.id}" onclick="openAccountModal('${a.id}')">
-      <div class="asset-name">${a.name}${a.exclude ? ' <span style="font-size:9px;color:#d4b8ae">不計入</span>' : ''}</div>
-      <div class="asset-val">$${fmt(a.value)}</div>
-    </div>`).join('');
-
   const etfItem = `
-    <div class="asset-item" onclick="openEtfSnapshotModal()">
+    <div class="asset-item" data-id="__etf__" onclick="openEtfSnapshotModal()">
       <div class="asset-name">ETF 市值</div>
       <div class="asset-val accent">$${fmt(assets.etfValue)}</div>
       <div class="asset-sub">+${assets.etfReturn}%</div>
     </div>`;
+
+  // 依儲存的順序排列資產格子（含 ETF）
+  const etfPos = assets.etfPosition ?? assetAccounts.length;
+  const assetSlots = assetAccounts.map(a => ({
+    id: a.id,
+    html: `<div class="asset-item${a.exclude ? ' excluded' : ''}" data-id="${a.id}" onclick="openAccountModal('${a.id}')">
+      <div class="asset-name">${a.name}${a.exclude ? ' <span style="font-size:9px;color:#d4b8ae">不計入</span>' : ''}</div>
+      <div class="asset-val">$${fmt(a.value)}</div>
+    </div>`
+  }));
+  assetSlots.splice(etfPos, 0, { id: '__etf__', html: etfItem });
+  const assetItems = assetSlots.map(s => s.html).join('');
 
   const debtItems = debtAccounts.map(a => `
     <div class="asset-item${a.exclude ? ' excluded' : ''}" data-id="${a.id}" onclick="openAccountModal('${a.id}')">
