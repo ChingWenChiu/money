@@ -168,6 +168,14 @@
       background: #FFBCA6; border-color: #FFBCA6; color: #2a1a14; font-weight: 600;
     }
 
+    /* ── Exclude Row ── */
+    .exclude-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: #c4a89a; margin-bottom: 14px; cursor: pointer;
+    }
+    .exclude-row input { width: 16px; height: 16px; accent-color: #c4614a; cursor: pointer; }
+    .asset-item.excluded { opacity: 0.45; }
+
     /* ── Delete Button ── */
     .delete-btn { color: #d05a3a !important; }
 
@@ -501,6 +509,10 @@
         <button id="type-debt-btn" onclick="setAccType('debt')">負債</button>
       </div>
     </div>
+    <label class="exclude-row">
+      <input type="checkbox" id="acc-exclude" />
+      <span>不計入總額</span>
+    </label>
     <button class="submit-btn" onclick="saveAccount()">儲存</button>
     <button class="cancel-btn delete-btn" id="acc-delete-btn" onclick="deleteAccount()">刪除此項目</button>
     <button class="cancel-btn" onclick="closeModal('modal-account')">取消</button>
@@ -599,7 +611,7 @@ const defaultGoals = {
 const defaultAccounts = [
   { id: 'acc_taishin', name: '台新銀行',  value: 150000 },
   { id: 'acc_cathay',  name: '國泰銀行',  value: 55000  },
-  { id: 'acc_mom',     name: '媽媽借款',  value: 66915  },
+  { id: 'acc_mom',     name: '媽媽借款',  value: 66915,  exclude: true },
   { id: 'acc_cc',      name: '信用卡帳單', value: -71972 },
 ];
 
@@ -637,7 +649,7 @@ const fmt = n => Math.round(n).toLocaleString('zh-TW');
 const fmtSigned = n => (n >= 0 ? '+$' : '-$') + Math.abs(Math.round(n)).toLocaleString('zh-TW');
 
 function netWorth() {
-  return accounts.reduce((sum, a) => sum + a.value, 0) + assets.etfValue;
+  return accounts.filter(a => !a.exclude).reduce((sum, a) => sum + a.value, 0) + assets.etfValue;
 }
 
 function ledgerByYear(year) {
@@ -703,8 +715,8 @@ function renderPage1() {
   const debtAccounts  = accounts.filter(a => a.value < 0);
 
   const assetItems = assetAccounts.map(a => `
-    <div class="asset-item" onclick="openAccountModal('${a.id}')">
-      <div class="asset-name">${a.name}</div>
+    <div class="asset-item${a.exclude ? ' excluded' : ''}" onclick="openAccountModal('${a.id}')">
+      <div class="asset-name">${a.name}${a.exclude ? ' <span style="font-size:9px;color:#d4b8ae">不計入</span>' : ''}</div>
       <div class="asset-val">$${fmt(a.value)}</div>
     </div>`).join('');
 
@@ -716,8 +728,8 @@ function renderPage1() {
     </div>`;
 
   const debtItems = debtAccounts.map(a => `
-    <div class="asset-item" onclick="openAccountModal('${a.id}')">
-      <div class="asset-name">${a.name}</div>
+    <div class="asset-item${a.exclude ? ' excluded' : ''}" onclick="openAccountModal('${a.id}')">
+      <div class="asset-name">${a.name}${a.exclude ? ' <span style="font-size:9px;color:#d4b8ae">不計入</span>' : ''}</div>
       <div class="asset-val neg">-$${fmt(Math.abs(a.value))}</div>
     </div>`).join('');
 
@@ -988,6 +1000,7 @@ function openAccountModal(id) {
   $('acc-name').value = acc.name;
   $('acc-value').value = Math.abs(acc.value);
   setAccType(acc.value >= 0 ? 'asset' : 'debt');
+  $('acc-exclude').checked = !!acc.exclude;
   $('acc-delete-btn').style.display = '';
   openModal('modal-account');
   setTimeout(() => $('acc-value').focus(), 50);
@@ -998,6 +1011,7 @@ function openAddAccountModal(type) {
   $('modal-account-title').textContent = '新增帳戶';
   $('acc-name').value = '';
   $('acc-value').value = '';
+  $('acc-exclude').checked = false;
   setAccType(type);
   $('acc-delete-btn').style.display = 'none';
   openModal('modal-account');
@@ -1008,12 +1022,13 @@ function saveAccount() {
   const name = $('acc-name').value.trim();
   const absVal = parseFloat($('acc-value').value) || 0;
   const value = newAccType === 'debt' ? -absVal : absVal;
+  const exclude = $('acc-exclude').checked;
   if (!name) return;
   if (editingAccId) {
     const idx = accounts.findIndex(a => a.id === editingAccId);
-    if (idx >= 0) accounts[idx] = { ...accounts[idx], name, value };
+    if (idx >= 0) accounts[idx] = { ...accounts[idx], name, value, exclude };
   } else {
-    accounts.push({ id: genId(), name, value });
+    accounts.push({ id: genId(), name, value, exclude });
   }
   save(KEYS.accounts, accounts);
   closeModal('modal-account');
