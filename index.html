@@ -765,7 +765,7 @@ let goals   = load(KEYS.goals,  defaultGoals);
 
 // 清除 accounts 裡的 ETF 帳戶（ETF 由程式碼固定卡片負責）
 const etfAccBefore = accounts.length;
-accounts = accounts.filter(a => !a.name.includes('ETF'));
+accounts = accounts.filter(a => !a.name.toLowerCase().includes('etf'));
 if (accounts.length !== etfAccBefore) save(KEYS.accounts, accounts);
 
 // 補入舊年份資料（已有 localStorage 的使用者）
@@ -966,7 +966,7 @@ function renderPage1() {
   const pct = Math.min((nw / houseGoal) * 100, 100).toFixed(1);
   const yearEst = 2031;
 
-  const assetAccounts = accounts.filter(a => a.value >= 0);
+  const assetAccounts = accounts.filter(a => a.value >= 0 && !a.name.toLowerCase().includes('etf'));
   const debtAccounts  = accounts.filter(a => a.value < 0);
 
   const etfItem = `
