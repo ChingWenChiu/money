@@ -532,11 +532,8 @@
 <div class="modal-overlay" id="modal-etf-snapshot">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">ETF 市值快照</div>
-    <div class="field"><label>庫存總現值</label><input type="number" id="etf-snap-value" /></div>
-    <div class="field"><label>報酬率 (%)</label><input type="number" id="etf-snap-return" step="0.01" /></div>
-    <div class="field"><label>成本</label><input type="number" id="etf-snap-cost" /></div>
-    <div class="field"><label>獲利</label><input type="number" id="etf-snap-gain" /></div>
+    <div class="modal-title">更新庫存總現值</div>
+    <div class="field"><label>庫存總現值 (TWD)</label><input type="number" id="etf-snap-value" /></div>
     <button class="submit-btn" onclick="saveEtfSnapshot()">儲存</button>
     <button class="cancel-btn" onclick="closeModal('modal-etf-snapshot')">取消</button>
   </div>
@@ -1068,6 +1065,24 @@ function renderPage3() {
   const colors   = { '006208': '#6baed6', '00878': '#e8a0a8', 'QQQ': '#74c69d', 'IBB': '#f4a65e' };
   const tColors  = { '006208': '#1a4a7a', '00878': '#7a2a3a', 'QQQ': '#1a5a3a', 'IBB': '#7a3a10' };
 
+  const { holdingMap, totalCost, gain, returnPct } = calcEtfStats();
+  const gainColor = gain >= 0 ? '#4a9e72' : '#d05a3a';
+  const gainPrefix = gain >= 0 ? '+' : '-';
+
+  const holdingRows = Object.entries(holdingMap)
+    .filter(([, v]) => v > 0)
+    .map(([name, amt]) => {
+      const col  = colors[name]  || '#c4614a';
+      const tcol = tColors[name] || '#5a2a1a';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:${col};"></div>
+          <span style="font-size:12px;color:#7a5a4a;">${name}</span>
+        </div>
+        <span style="font-size:13px;font-weight:600;color:${tcol};">$${fmt(amt)}</span>
+      </div>`;
+    }).join('');
+
   const years = [...new Set(etfLog.map(r => r.date.slice(0,4)))].sort((a,b) => b-a);
   const yearBtns = years.map(y =>
     `<button class="tab-btn ${Number(y) === currentEtfYear ? 'active' : ''}" onclick="switchEtfYear(${y})">${y}</button>`
@@ -1119,29 +1134,24 @@ function renderPage3() {
       </div>
     </div>
 
-    <div class="etf-hero">
+    <div class="etf-hero" onclick="openEtfSnapshotModal()" style="cursor:pointer;">
       <div class="etf-lbl">庫存總現值 (TWD)</div>
       <div class="etf-main">
         <div class="etf-big">${fmt(assets.etfValue)}</div>
-        <div class="etf-ret">(+${assets.etfReturn}%)</div>
+        <div class="etf-ret" style="color:${gainColor};">(${gainPrefix}${returnPct}%)</div>
       </div>
       <div class="etf-cost-row">
         <div>
-          <div class="etf-cost-lbl">總成本</div>
-          <div class="etf-cost-val">${fmt(assets.etfCost)}</div>
+          <div class="etf-cost-lbl">總成本（自動計算）</div>
+          <div class="etf-cost-val">$${fmt(totalCost)}</div>
         </div>
         <div>
           <div class="etf-cost-lbl">不含息參考報酬</div>
-          <div class="etf-gain-val">+${fmt(assets.etfGain)}</div>
+          <div class="etf-gain-val" style="color:${gainColor};">${gainPrefix}$${fmt(Math.abs(gain))}</div>
         </div>
       </div>
-      <div class="seg-bar">
-        <div class="seg-tw"></div>
-        <div class="seg-os"></div>
-      </div>
-      <div class="seg-labels">
-        <div class="seg-item"><div class="seg-sq" style="background:#6baed6;"></div>台股 65.41%</div>
-        <div class="seg-item"><div class="seg-sq" style="background:#74c69d;"></div>海外股 34.59%</div>
+      <div style="margin-top:12px;border-top:0.5px solid rgba(0,0,0,0.06);padding-top:10px;">
+        ${holdingRows}
       </div>
     </div>
 
@@ -1291,22 +1301,28 @@ function deleteAccount() {
 
 // ── ETF 快照 ──
 function openEtfSnapshotModal() {
-  $('etf-snap-value').value  = assets.etfValue;
-  $('etf-snap-return').value = assets.etfReturn;
-  $('etf-snap-cost').value   = assets.etfCost;
-  $('etf-snap-gain').value   = assets.etfGain;
+  $('etf-snap-value').value = assets.etfValue;
   openModal('modal-etf-snapshot');
   setTimeout(() => $('etf-snap-value').focus(), 50);
 }
 
 function saveEtfSnapshot() {
-  assets.etfValue  = parseFloat($('etf-snap-value').value)  || 0;
-  assets.etfReturn = parseFloat($('etf-snap-return').value) || 0;
-  assets.etfCost   = parseFloat($('etf-snap-cost').value)   || 0;
-  assets.etfGain   = parseFloat($('etf-snap-gain').value)   || 0;
+  assets.etfValue = parseFloat($('etf-snap-value').value) || 0;
   save(KEYS.assets, assets);
   closeModal('modal-etf-snapshot');
   renderPage1();
+}
+
+function calcEtfStats() {
+  // 各檔累計投入（含賣出負數）
+  const holdingMap = {};
+  etfLog.forEach(r => {
+    holdingMap[r.name] = (holdingMap[r.name] || 0) + r.amount;
+  });
+  const totalCost = Object.values(holdingMap).reduce((s, v) => s + v, 0);
+  const gain = assets.etfValue - totalCost;
+  const returnPct = totalCost > 0 ? ((gain / totalCost) * 100).toFixed(2) : '0.00';
+  return { holdingMap, totalCost, gain, returnPct };
 }
 
 // Init year select for ledger modal
