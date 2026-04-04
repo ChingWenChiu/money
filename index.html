@@ -615,11 +615,28 @@ const defaultAccounts = [
   { id: 'acc_cc',      name: '信用卡帳單', value: -71972 },
 ];
 
-function genId() { return 'acc_' + Date.now().toString(36); }
+let _idSeq = 0;
+function genId() { return 'acc_' + Date.now().toString(36) + '_' + (++_idSeq); }
+
+// 修復重複 ID（舊資料問題）
+function fixDuplicateIds(list) {
+  const seen = new Set();
+  return list.map(a => {
+    if (seen.has(a.id)) return { ...a, id: genId() };
+    seen.add(a.id);
+    return a;
+  });
+}
 
 // 從舊 fp_assets 格式自動搬移
 function loadAccounts() {
-  if (localStorage.getItem(KEYS.accounts)) return load(KEYS.accounts, defaultAccounts);
+  if (localStorage.getItem(KEYS.accounts)) {
+    const stored = load(KEYS.accounts, defaultAccounts);
+    const fixed = fixDuplicateIds(stored);
+    // 若有修復，存回去
+    if (fixed.some((a, i) => a.id !== stored[i]?.id)) save(KEYS.accounts, fixed);
+    return fixed;
+  }
   const old = load(KEYS.assets, null);
   if (old && old.taishin !== undefined) {
     const migrated = [
