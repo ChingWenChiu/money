@@ -144,6 +144,14 @@
     .asset-val.neg { color: #d05a3a; }
     .asset-sub { font-size: 10px; color: #d4b8ae; margin-top: 2px; }
 
+    /* ── Drag & Drop ── */
+    .asset-item.dragging { opacity: 0.25; }
+    .drag-placeholder {
+      border-radius: 14px;
+      border: 2px dashed #FFBCA6;
+      background: #fff0eb;
+    }
+
     /* ── Add Item Button ── */
     .add-item-btn {
       display: flex;
@@ -693,6 +701,91 @@ function etfYearTotal(year) {
 }
 
 // ═══════════════════════════════════════
+//  DRAG SORT
+// ═══════════════════════════════════════
+function initDragSort() {
+  [['asset-grid-assets', true], ['asset-grid-debts', false]].forEach(([gridId, isAsset]) => {
+    const grid = document.getElementById(gridId);
+    if (!grid) return;
+    grid.querySelectorAll('.asset-item[data-id]').forEach(item => {
+      let pressTimer = null, isDragging = false;
+      let clone = null, placeholder = null;
+      let startX = 0, startY = 0, offsetX = 0, offsetY = 0;
+
+      item.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        pressTimer = setTimeout(() => {
+          isDragging = true;
+          const rect = item.getBoundingClientRect();
+          offsetX = startX - rect.left;
+          offsetY = startY - rect.top;
+
+          clone = item.cloneNode(true);
+          clone.style.cssText = `position:fixed;width:${rect.width}px;height:${rect.height}px;` +
+            `left:${rect.left}px;top:${rect.top}px;opacity:0.9;pointer-events:none;z-index:999;` +
+            `transform:scale(1.06);box-shadow:0 8px 24px rgba(0,0,0,0.15);border-radius:14px;`;
+          document.body.appendChild(clone);
+
+          placeholder = document.createElement('div');
+          placeholder.className = 'drag-placeholder';
+          placeholder.style.cssText = `width:${rect.width}px;height:${rect.height}px;`;
+          item.classList.add('dragging');
+          item.after(placeholder);
+        }, 400);
+      }, { passive: true });
+
+      item.addEventListener('touchmove', e => {
+        const dx = Math.abs(e.touches[0].clientX - startX);
+        const dy = Math.abs(e.touches[0].clientY - startY);
+        if (!isDragging) {
+          if (dx > 8 || dy > 8) clearTimeout(pressTimer);
+          return;
+        }
+        e.preventDefault();
+        const touch = e.touches[0];
+        clone.style.left = (touch.clientX - offsetX) + 'px';
+        clone.style.top  = (touch.clientY - offsetY) + 'px';
+
+        // 找最近的格子，移動 placeholder
+        const siblings = [...grid.querySelectorAll('.asset-item[data-id]')];
+        let nearest = null, nearestDist = Infinity;
+        siblings.forEach(el => {
+          const r = el.getBoundingClientRect();
+          const dist = Math.hypot(touch.clientX - (r.left + r.width / 2),
+                                  touch.clientY - (r.top  + r.height / 2));
+          if (dist < nearestDist) { nearestDist = dist; nearest = el; }
+        });
+        if (nearest && nearest !== item) {
+          const r = nearest.getBoundingClientRect();
+          const after = touch.clientX > r.left + r.width / 2;
+          after ? nearest.after(placeholder) : nearest.before(placeholder);
+        }
+      }, { passive: false });
+
+      const endDrag = () => {
+        clearTimeout(pressTimer);
+        if (!isDragging) return;
+        isDragging = false;
+        clone.remove(); clone = null;
+        item.classList.remove('dragging');
+        placeholder.replaceWith(item);
+
+        // 讀取 DOM 新順序，更新 accounts
+        const newOrder = [...grid.querySelectorAll('.asset-item[data-id]')].map(el => el.dataset.id);
+        const reordered = newOrder.map(id => accounts.find(a => a.id === id)).filter(Boolean);
+        const other = accounts.filter(a => isAsset ? a.value < 0 : a.value >= 0);
+        accounts = isAsset ? [...reordered, ...other] : [...other, ...reordered];
+        save(KEYS.accounts, accounts);
+        renderPage1();
+      };
+      item.addEventListener('touchend', endDrag);
+      item.addEventListener('touchcancel', endDrag);
+    });
+  });
+}
+
+// ═══════════════════════════════════════
 //  PAGE RENDERING
 // ═══════════════════════════════════════
 let currentPage = 0;
@@ -732,7 +825,7 @@ function renderPage1() {
   const debtAccounts  = accounts.filter(a => a.value < 0);
 
   const assetItems = assetAccounts.map(a => `
-    <div class="asset-item${a.exclude ? ' excluded' : ''}" onclick="openAccountModal('${a.id}')">
+    <div class="asset-item${a.exclude ? ' excluded' : ''}" data-id="${a.id}" onclick="openAccountModal('${a.id}')">
       <div class="asset-name">${a.name}${a.exclude ? ' <span style="font-size:9px;color:#d4b8ae">不計入</span>' : ''}</div>
       <div class="asset-val">$${fmt(a.value)}</div>
     </div>`).join('');
@@ -745,7 +838,7 @@ function renderPage1() {
     </div>`;
 
   const debtItems = debtAccounts.map(a => `
-    <div class="asset-item${a.exclude ? ' excluded' : ''}" onclick="openAccountModal('${a.id}')">
+    <div class="asset-item${a.exclude ? ' excluded' : ''}" data-id="${a.id}" onclick="openAccountModal('${a.id}')">
       <div class="asset-name">${a.name}${a.exclude ? ' <span style="font-size:9px;color:#d4b8ae">不計入</span>' : ''}</div>
       <div class="asset-val neg">-$${fmt(Math.abs(a.value))}</div>
     </div>`).join('');
@@ -767,7 +860,7 @@ function renderPage1() {
     </div>
 
     <div class="sec-label">資產帳戶</div>
-    <div class="asset-grid">
+    <div class="asset-grid" id="asset-grid-assets">
       ${assetItems}
       ${etfItem}
       <div class="asset-item add-item-btn" onclick="openAddAccountModal('asset')">
@@ -777,7 +870,7 @@ function renderPage1() {
     </div>
 
     <div class="sec-label">負債</div>
-    <div class="asset-grid">
+    <div class="asset-grid" id="asset-grid-debts">
       ${debtItems}
       <div class="asset-item add-item-btn" onclick="openAddAccountModal('debt')">
         <div class="add-icon">＋</div>
@@ -785,6 +878,7 @@ function renderPage1() {
       </div>
     </div>
   `;
+  initDragSort();
 }
 
 // ── Page 2: 記帳 ──
