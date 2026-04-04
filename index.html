@@ -559,6 +559,49 @@
   </div>
 </div>
 
+<!-- ── Modal: 目標金額 ── -->
+<div class="modal-overlay" id="modal-goal-house">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">設定目標金額</div>
+    <div class="field">
+      <label>目標名稱</label>
+      <input type="text" id="goal-house-name" placeholder="例：買房頭期款" />
+    </div>
+    <div class="field">
+      <label>目標金額 (TWD)</label>
+      <input type="number" id="goal-house-amount" placeholder="例：3000000" />
+    </div>
+    <button class="submit-btn" onclick="saveGoalHouse()">儲存</button>
+    <button class="cancel-btn" onclick="closeModal('modal-goal-house')">取消</button>
+  </div>
+</div>
+
+<!-- ── Modal: 里程碑 ── -->
+<div class="modal-overlay" id="modal-milestone">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-milestone-title">新增里程碑</div>
+    <div class="field-row">
+      <div class="field">
+        <label>年齡</label>
+        <input type="number" id="milestone-age" placeholder="例：30" />
+      </div>
+      <div class="field">
+        <label>年份</label>
+        <input type="number" id="milestone-year" placeholder="例：2030" />
+      </div>
+    </div>
+    <div class="field">
+      <label>目標金額 (TWD)</label>
+      <input type="number" id="milestone-target" placeholder="例：1000000" />
+    </div>
+    <button class="submit-btn" onclick="saveMilestone()">儲存</button>
+    <button class="cancel-btn delete-btn" id="milestone-delete-btn" onclick="deleteMilestone()">刪除此里程碑</button>
+    <button class="cancel-btn" onclick="closeModal('modal-milestone')">取消</button>
+  </div>
+</div>
+
 <!-- ── Modal: ETF 市值快照 ── -->
 <div class="modal-overlay" id="modal-etf-snapshot">
   <div class="modal-sheet">
@@ -809,7 +852,7 @@ function initDragSort() {
 //  PAGE RENDERING
 // ═══════════════════════════════════════
 let currentPage = 0;
-let currentLedgerYear = 2026;
+let currentLedgerYear = new Date().getFullYear();
 let currentEtfYear = 2026;
 
 function showPage(idx) {
@@ -840,18 +883,19 @@ function renderPage1() {
   const { returnPct: etfReturnPct } = calcEtfStats();
   const nw = netWorth();
   const houseGoal = goals.house;
-  const pct = Math.min((nw / houseGoal) * 100, 100).toFixed(1);
-  const yearEst = 2031;
+  const goalName  = goals.name || '目標金額';
+  const pct = houseGoal > 0 ? Math.min((nw / houseGoal) * 100, 100).toFixed(1) : 0;
 
   const assetAccounts = accounts.filter(a => a.value >= 0 && !a.name.toLowerCase().includes('etf'));
   const debtAccounts  = accounts.filter(a => a.value < 0);
 
-  const etfItem = `
+  const hasEtf = assets.etfValue > 0 || etfLog.length > 0;
+  const etfItem = hasEtf ? `
     <div class="asset-item" data-id="__etf__" onclick="openEtfSnapshotModal()">
       <div class="asset-name">ETF 市值</div>
       <div class="asset-val accent">$${fmt(assets.etfValue)}</div>
       <div class="asset-sub">+${etfReturnPct}%</div>
-    </div>`;
+    </div>` : '';
 
   // 依儲存的順序排列資產格子（含 ETF）
   const etfPos = assets.etfPosition ?? assetAccounts.length;
@@ -862,7 +906,7 @@ function renderPage1() {
       <div class="asset-val">$${fmt(a.value)}</div>
     </div>`
   }));
-  assetSlots.splice(etfPos, 0, { id: '__etf__', html: etfItem });
+  if (hasEtf) assetSlots.splice(etfPos, 0, { id: '__etf__', html: etfItem });
   const assetItems = assetSlots.map(s => s.html).join('');
 
   const debtItems = debtAccounts.map(a => `
@@ -880,11 +924,11 @@ function renderPage1() {
     </div>
 
     <div class="hero-card">
-      <div class="hero-label">買房頭期款目標</div>
+      <div class="hero-label">${goalName}</div>
       <div class="hero-amount">$${fmt(nw)}</div>
-      <div class="hero-sub">目標 $${fmt(houseGoal)} · 剩餘 $${fmt(houseGoal - nw)}</div>
+      <div class="hero-sub">${houseGoal > 0 ? `目標 $${fmt(houseGoal)} · 剩餘 $${fmt(Math.max(houseGoal - nw, 0))}` : '尚未設定目標'}</div>
       <div class="hero-track"><div class="hero-fill" style="width:${pct}%"></div></div>
-      <div class="hero-footer"><span>${pct}% 達成</span><span>預估 ${yearEst} 年</span></div>
+      <div class="hero-footer"><span>${pct}% 達成</span><span></span></div>
     </div>
 
     <div class="sec-label">資產帳戶</div>
@@ -939,7 +983,11 @@ function renderPage2() {
     </div>`;
   }).join('');
 
-  const yearBtns = [2026, 2025, 2024, 2023, 2022].map(y =>
+  const ledgerYears = [...new Set([
+    new Date().getFullYear(),
+    ...ledger.map(r => r.year)
+  ])].sort((a, b) => b - a);
+  const yearBtns = ledgerYears.map(y =>
     `<button class="tab-btn ${y === currentLedgerYear ? 'active' : ''}" onclick="switchLedgerYear(${y})">${y}</button>`
   ).join('');
 
@@ -1111,45 +1159,59 @@ function switchEtfYear(y) {
 function renderPage4() {
   const nw = netWorth();
   const houseGoal = goals.house;
-  const pct = Math.min((nw / houseGoal) * 100, 100).toFixed(1);
+  const goalName = goals.name || '目標金額';
+  const pct = houseGoal > 0 ? Math.min((nw / houseGoal) * 100, 100).toFixed(1) : 0;
 
-  const milestoneRows = goals.milestones.map(m => {
-    const p = Math.min((nw / m.target) * 100, 100).toFixed(0);
-    const done = nw >= m.target;
-    const fillColor = done ? '#4a9e72' : (p > 50 ? '#FFBCA6' : '#ffd4c4');
-    const pctLabel = done
-      ? '<span class="goal-pct done">✓ 達標</span>'
-      : `<span class="goal-pct">${p}%</span>`;
-    const detail = done
-      ? `$${fmt(nw)} / $${fmt(m.target)} · 超標 $${fmt(nw - m.target)}`
-      : `$${fmt(nw)} / $${fmt(m.target)} · 還需 $${fmt(m.target - nw)}`;
-    return `<div class="goal-item">
-      <div class="goal-row">
-        <div class="goal-name">${m.age}歲 · ${m.year}</div>
-        ${pctLabel}
-      </div>
-      <div class="goal-track"><div class="goal-fill" style="width:${p}%;background:${fillColor};"></div></div>
-      <div class="goal-detail">${detail}</div>
-    </div>`;
-  }).join('');
+  const heroCard = houseGoal > 0
+    ? `<div class="hero-card" onclick="openGoalHouseEdit()" style="cursor:pointer;">
+        <div class="hero-label">${goalName} <span style="font-size:12px;opacity:0.6;">✏️</span></div>
+        <div class="hero-amount">$${fmt(houseGoal)}</div>
+        <div class="hero-sub">目前 $${fmt(nw)} · 達成 ${pct}%</div>
+        <div class="hero-track"><div class="hero-fill" style="width:${pct}%"></div></div>
+        <div class="hero-footer"><span></span><span>還需 $${fmt(Math.max(houseGoal - nw, 0))}</span></div>
+      </div>`
+    : `<div class="hero-card" onclick="openGoalHouseEdit()" style="cursor:pointer;text-align:center;padding:32px 20px;">
+        <div style="font-size:32px;margin-bottom:8px;">🎯</div>
+        <div style="font-size:15px;font-weight:700;color:#2a1a14;margin-bottom:4px;">設定你的目標金額</div>
+        <div style="font-size:13px;color:#c4a89a;">點擊新增第一個財務目標</div>
+      </div>`;
+
+  const milestoneRows = goals.milestones.length > 0
+    ? goals.milestones.map((m, i) => {
+        const p = m.target > 0 ? Math.min((nw / m.target) * 100, 100).toFixed(0) : 0;
+        const done = nw >= m.target;
+        const fillColor = done ? '#4a9e72' : (p > 50 ? '#FFBCA6' : '#ffd4c4');
+        const pctLabel = done
+          ? '<span class="goal-pct done">✓ 達標</span>'
+          : `<span class="goal-pct">${p}%</span>`;
+        const detail = done
+          ? `$${fmt(nw)} / $${fmt(m.target)} · 超標 $${fmt(nw - m.target)}`
+          : `$${fmt(nw)} / $${fmt(m.target)} · 還需 $${fmt(m.target - nw)}`;
+        return `<div class="goal-item" onclick="openEditMilestone(${i})" style="cursor:pointer;">
+          <div class="goal-row">
+            <div class="goal-name">${m.age}歲 · ${m.year}</div>
+            ${pctLabel}
+          </div>
+          <div class="goal-track"><div class="goal-fill" style="width:${p}%;background:${fillColor};"></div></div>
+          <div class="goal-detail">${detail}</div>
+        </div>`;
+      }).join('')
+    : `<div style="text-align:center;padding:24px 0;color:#c4a89a;font-size:13px;">尚未設定里程碑，點擊下方按鈕新增</div>`;
 
   $('content').innerHTML = `
     <div class="page-header">
       <div>
         <div class="page-title">目標追蹤</div>
-        <div class="page-sub">30歲資產計畫</div>
+        <div class="page-sub">財務目標計畫</div>
       </div>
     </div>
 
-    <div class="hero-card">
-      <div class="hero-label">買房頭期款</div>
-      <div class="hero-amount">$${fmt(houseGoal)}</div>
-      <div class="hero-sub">目前 $${fmt(nw)} · 達成 ${pct}%</div>
-      <div class="hero-track"><div class="hero-fill" style="width:${pct}%"></div></div>
-      <div class="hero-footer"><span>預估達標：2031年</span><span>還需 $${fmt(houseGoal - nw)}</span></div>
-    </div>
+    ${heroCard}
 
-    <div class="sec-label">30 歲分年里程碑</div>
+    <div class="sec-label" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>分年里程碑</span>
+      <button onclick="openNewMilestone()" style="background:#FFBCA6;color:#7a2a18;border:none;border-radius:10px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;">＋ 新增</button>
+    </div>
     ${milestoneRows}
   `;
 }
@@ -1513,6 +1575,76 @@ function saveEtf() {
   save(KEYS.etf, etfLog);
   closeModal('modal-etf');
   renderPage3();
+}
+
+// ── Goals: 目標金額 ──
+function openGoalHouseEdit() {
+  $('goal-house-name').value   = goals.name || '';
+  $('goal-house-amount').value = goals.house || '';
+  openModal('modal-goal-house');
+  setTimeout(() => $('goal-house-name').focus(), 50);
+}
+
+function saveGoalHouse() {
+  const name   = $('goal-house-name').value.trim() || '目標金額';
+  const amount = parseFloat($('goal-house-amount').value) || 0;
+  goals.name  = name;
+  goals.house = amount;
+  save(KEYS.goals, goals);
+  closeModal('modal-goal-house');
+  renderPage4();
+}
+
+// ── Goals: 里程碑 ──
+let editingMilestoneIdx = null;
+
+function openNewMilestone() {
+  editingMilestoneIdx = null;
+  $('modal-milestone-title').textContent = '新增里程碑';
+  $('milestone-age').value    = '';
+  $('milestone-year').value   = new Date().getFullYear();
+  $('milestone-target').value = '';
+  $('milestone-delete-btn').style.display = 'none';
+  openModal('modal-milestone');
+  setTimeout(() => $('milestone-age').focus(), 50);
+}
+
+function openEditMilestone(idx) {
+  editingMilestoneIdx = idx;
+  const m = goals.milestones[idx];
+  $('modal-milestone-title').textContent = '編輯里程碑';
+  $('milestone-age').value    = m.age;
+  $('milestone-year').value   = m.year;
+  $('milestone-target').value = m.target;
+  $('milestone-delete-btn').style.display = '';
+  openModal('modal-milestone');
+  setTimeout(() => $('milestone-target').focus(), 50);
+}
+
+function saveMilestone() {
+  const age    = parseInt($('milestone-age').value)           || 0;
+  const year   = parseInt($('milestone-year').value)          || new Date().getFullYear();
+  const target = parseFloat($('milestone-target').value)      || 0;
+  if (!age || !target) return;
+  const entry = { age, year, target };
+  if (editingMilestoneIdx !== null) {
+    goals.milestones[editingMilestoneIdx] = entry;
+  } else {
+    goals.milestones.push(entry);
+    goals.milestones.sort((a, b) => a.year - b.year || a.age - b.age);
+  }
+  save(KEYS.goals, goals);
+  closeModal('modal-milestone');
+  renderPage4();
+}
+
+function deleteMilestone() {
+  if (editingMilestoneIdx === null) return;
+  if (!confirm('確定刪除此里程碑？')) return;
+  goals.milestones.splice(editingMilestoneIdx, 1);
+  save(KEYS.goals, goals);
+  closeModal('modal-milestone');
+  renderPage4();
 }
 
 // Close modal on overlay click
