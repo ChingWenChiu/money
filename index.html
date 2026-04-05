@@ -923,7 +923,8 @@ function renderPage1() {
       </div>
     </div>
 
-    <div class="hero-card">
+    <div class="hero-card" style="position:relative;">
+      <img src="./icons/coins.png" style="position:absolute;top:-40px;right:-8px;width:145px;height:145px;" />
       <div class="hero-label">${goalName}</div>
       <div class="hero-amount">$${fmt(nw)}</div>
       <div class="hero-sub">${houseGoal > 0 ? `目標 $${fmt(houseGoal)} · 剩餘 $${fmt(Math.max(houseGoal - nw, 0))}` : '尚未設定目標'}</div>
