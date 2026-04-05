@@ -883,7 +883,7 @@ function renderPage1() {
   const { returnPct: etfReturnPct } = calcEtfStats();
   const nw = netWorth();
   const houseGoal = goals.house;
-  const goalName  = goals.name || '目標金額';
+  const goalName  = goals.name || '淨資產';
   const pct = houseGoal > 0 ? Math.min((nw / houseGoal) * 100, 100).toFixed(1) : 0;
 
   const assetAccounts = accounts.filter(a => a.value >= 0 && !a.name.toLowerCase().includes('etf'));
