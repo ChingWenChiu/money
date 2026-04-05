@@ -1043,17 +1043,25 @@ function renderPage3() {
   const gainColor = gain >= 0 ? '#4a9e72' : '#d05a3a';
   const gainPrefix = gain >= 0 ? '+' : '-';
 
-  const holdingRows = Object.entries(holdingMap)
-    .filter(([, v]) => v > 0)
+  const holdingEntries = Object.entries(holdingMap).filter(([, v]) => v > 0);
+  const holdingTotal = holdingEntries.reduce((s, [, v]) => s + v, 0);
+  const holdingRows = holdingEntries
     .map(([name, amt]) => {
       const col  = colors[name]  || '#c4614a';
       const tcol = tColors[name] || '#5a2a1a';
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <div style="width:8px;height:8px;border-radius:50%;background:${col};"></div>
-          <span style="font-size:12px;color:#7a5a4a;">${name}</span>
+      const pct  = holdingTotal > 0 ? (amt / holdingTotal * 100).toFixed(1) : 0;
+      return `<div style="padding:5px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:${col};"></div>
+            <span style="font-size:12px;color:#7a5a4a;">${name}</span>
+          </div>
+          <span style="font-size:13px;font-weight:600;color:${tcol};">$${fmt(amt)}</span>
         </div>
-        <span style="font-size:13px;font-weight:600;color:${tcol};">$${fmt(amt)}</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="height:6px;border-radius:4px;background:${col};width:${pct}%;opacity:0.75;"></div>
+          <span style="font-size:10px;color:#a08070;white-space:nowrap;">${pct}%</span>
+        </div>
       </div>`;
     }).join('');
 
